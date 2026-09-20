@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão Financeira & Reestruturação Real</title>
+  <style>
+    :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --warning: #d97706; --bg: #f8f9fa; --card: #ffffff; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1, h2, h3 { color: #202124; margin-top: 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .metric { font-size: 1.6rem; font-weight: bold; margin-top: 8px; }
+    .metric.positive { color: var(--success); }
+    .metric.negative { color: var(--danger); }
+    .metric.warning { color: var(--warning); }
+    .checklist { list-style: none; padding: 0; margin: 0; }
+    .checklist li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    form { display: grid; gap: 10px; }
+    input, select, button { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { opacity: 0.9; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
+    .badge { background: #e8f0fe; color: #1a73e8; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; }
+    .badge-success { background: #e6f4ea; color: #137333; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Controle Financeiro & Reestruturação Pessoal</h1>
+    
+    <!-- SALDOS DISPONÍVEIS REAIS -->
+    <div class="grid">
+      <div class="card">
+        <h3>Saldo Líquido C6 (Conta)</h3>
+        <div id="saldoC6" class="metric positive">R$ 71,59</div>
+        <small>Aguardando confirmação do PIX do Matheus</small>
+      </div>
+      <div class="card">
+        <h3>Investimentos Bloqueados</h3>
+        <div class="metric">R$ 408,43</div>
+        <small>CDB C6 5 anos (Sem liquidez diária)</small>
+      </div>
+      <div class="card">
+        <h3>Dívidas Mapeadas</h3>
+        <div id="dividaTotal" class="metric negative">R$ 12.515,00</div>
+        <small>Meta 1: Quitação / Nome Limpo</small>
+      </div>
+      <div class="card">
+        <h3>Meta Civic Gen10</h3>
+        <div class="metric">R$ 120.000,00</div>
+        <small>Meta 3: Patrimônio Futuro</small>
+      </div>
+    </div>
+
+    <!-- CALENDÁRIO DE RECTIFICAÇÃO DE FLUXO -->
+    <div class="card" style="margin-bottom: 20px;">
+      <h3>Próximas Entradas — Ponte para Outubro</h3>
+      <ul class="checklist">
+        <li style="background: #e6f4ea; padding: 10px; border-radius: 6px; margin-bottom: 5px;">
+          <span><strong>Hoje/Amanhã (20-21/Set) — Matheus (Aluguel)</strong></span> 
+          <strong>R$ 850,00</strong> 
+          <span class="badge badge-success">Entrada Iminente</span>
+        </li>
+        <li><span>Dia 01/Out — João (Aluguel)</span> <strong>R$ 500,00</strong> <span class="badge">A Receber</span></li>
+        <li><span>Dia 05 a 10/Out — Marcos (Aluguel)</span> <strong>R$ 930,00</strong> <span class="badge">A Receber</span></li>
+        <li><span>Dia 08 a 10/Out — Salário (Trabalho)</span> <strong>R$ 8.400,00 (+ R$ 1.000 VA)</strong> <span class="badge">A Receber</span></li>
+        <li style="background: #fff3cd; padding: 10px; border-radius: 6px; margin: 5px 0;">
+          <strong>DIA D 1 (11 de Outubro): Regularização Geral + Aluguel Quitinete (R$ 1.600)</strong>
+        </li>
+      </ul>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Lançar Gastos / Entradas</h3>
+        <form id="formLancamento">
+          <input type="date" id="data" required>
+          <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel Matheus, Mercado)" required>
+          <input type="number" step="0.01" id="valor" placeholder="Valor (R$)" required>
+          <select id="tipo">
+            <option value="entrada">Entrada de Dinheiro (+)</option>
+            <option value="gasto">Gasto Diário (-)</option>
+            <option value="divida">Pagamento de Dívida (-)</option>
+          </select>
+          <button type="submit">Registrar no Histórico</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Histórico de Lançamentos</h3>
+        <table>
+          <thead>
+            <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr>
+          </thead>
+          <tbody id="tabelaLancamentos"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let dados = JSON.parse(localStorage.getItem('financasDataLiquida')) || {
+      dividaTotal: 12515.00,
+      saldoC6: 71.59,
+      lancamentos: []
+    };
+
+    function atualizarUI() {
+      let dividaAtual = dados.dividaTotal;
+      let c6 = dados.saldoC6;
+      
+      dados.lancamentos.forEach(l => {
+        if(l.tipo === 'divida') dividaAtual -= l.valor;
+        if(l.tipo === 'gasto') c6 -= l.valor;
+        if(l.tipo === 'entrada') c6 += l.valor;
+      });
+
+      document.getElementById('dividaTotal').innerText = `R$ ${Math.max(0, dividaAtual).toFixed(2)}`;
+      
+      const elSaldo = document.getElementById('saldoC6');
+      elSaldo.innerText = `R$ ${Math.max(0, c6).toFixed(2)}`;
+      if(c6 >= 500) {
+        elSaldo.className = "metric positive";
+      } else {
+        elSaldo.className = "metric warning";
+      }
+
+      const tbody = document.getElementById('tabelaLancamentos');
+      tbody.innerHTML = '';
+      dados.lancamentos.slice(-6).reverse().forEach(l => {
+        tbody.innerHTML += `<tr><td>${l.data}</td><td>${l.descricao}</td><td>${l.tipo}</td><td>R$ ${l.valor.toFixed(2)}</td></tr>`;
+      });
+
+      localStorage.setItem('financasDataLiquida', JSON.stringify(dados));
+    }
+
+    document.getElementById('formLancamento').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const novo = {
+        data: document.getElementById('data').value,
+        descricao: document.getElementById('descricao').value,
+        valor: parseFloat(document.getElementById('valor').value),
+        tipo: document.getElementById('tipo').value
+      };
+      dados.lancamentos.push(novo);
+      atualizarUI();
+      e.target.reset();
+      document.getElementById('data').valueAsDate = new Date();
+    });
+
+    document.getElementById('data').valueAsDate = new Date();
+    atualizarUI();
+  </script>
+</body>
+</html>
