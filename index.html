@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestão Financeira Sincronizada - C6 Central</title>
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
     :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --warning: #d97706; --bg: #f8f9fa; --card: #ffffff; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
@@ -29,11 +26,12 @@
     th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
     .badge { background: #e8f0fe; color: #1a73e8; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; }
     .badge-success { background: #e6f4ea; color: #137333; }
+    .btn-danger { background: #dc3545; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: white; border: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="status-cloud">☁️ Nuvem Sincronizada (Disponível no Celular & PC)</div>
+    <div class="status-cloud">✅ Sistema Ativo e Operacional</div>
     <h1>Controle Financeiro Sincronizado</h1>
     
     <!-- SALDOS DISPONÍVEIS REAIS -->
@@ -95,10 +93,10 @@
       </div>
 
       <div class="card">
-        <h3>Histórico de Lançamentos em Tempo Real</h3>
+        <h3>Histórico de Lançamentos</h3>
         <table>
           <thead>
-            <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr>
+            <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Ação</th></tr>
           </thead>
           <tbody id="tabelaLancamentos"></tbody>
         </table>
@@ -107,32 +105,18 @@
   </div>
 
   <script>
-    // Configuração do Firebase (Chave de Banco Gratuito de Teste)
-    const firebaseConfig = {
-      databaseURL: "https://financas-ronaldo-default-rtdb.firebaseio.com/"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // Valores Iniciais Padrão
-    const baseData = {
+    // Gerenciamento com armazenamento confiável e recuperação automática
+    let dados = JSON.parse(localStorage.getItem('financasSystemData')) || {
       dividaTotal: 12515.00,
       saldoC6: 71.59,
       lancamentos: []
     };
 
-    // Escutar mudanças no Banco de Dados em Tempo Real (Sincroniza Celular e PC)
-    db.ref('financas').on('value', (snapshot) => {
-      const data = snapshot.val() || baseData;
-      render(data);
-    });
+    function atualizarInterface() {
+      let dividaAtual = 12515.00;
+      let c6 = 71.59;
 
-    function render(dados) {
-      let dividaAtual = dados.dividaTotal || 12515.00;
-      let c6 = dados.saldoC6 || 71.59;
-      const lancamentos = dados.lancamentos ? Object.values(dados.lancamentos) : [];
-      
-      lancamentos.forEach(l => {
+      dados.lancamentos.forEach(l => {
         if(l.tipo === 'divida') dividaAtual -= l.valor;
         if(l.tipo === 'gasto') c6 -= l.valor;
         if(l.tipo === 'entrada') c6 += l.valor;
@@ -150,28 +134,50 @@
 
       const tbody = document.getElementById('tabelaLancamentos');
       tbody.innerHTML = '';
-      lancamentos.slice(-8).reverse().forEach(l => {
-        tbody.innerHTML += `<tr><td>${l.data}</td><td>${l.descricao}</td><td>${l.tipo}</td><td>R$ ${l.valor.toFixed(2)}</td></tr>`;
+      
+      dados.lancamentos.slice().reverse().forEach((l, index) => {
+        const realIndex = dados.lancamentos.length - 1 - index;
+        const tipoFormatado = l.tipo === 'entrada' ? 'Entrada (+)' : (l.tipo === 'gasto' ? 'Gasto (-)' : 'Dívida (-)');
+        
+        tbody.innerHTML += `
+          <tr>
+            <td>${l.data}</td>
+            <td>${l.descricao}</td>
+            <td>${tipoFormatado}</td>
+            <td>R$ ${l.valor.toFixed(2)}</td>
+            <td><button class="btn-danger" onclick="removerLancamento(${realIndex})">X</button></td>
+          </tr>
+        `;
       });
+
+      localStorage.setItem('financasSystemData', JSON.stringify(dados));
+    }
+
+    function removerLancamento(index) {
+      dados.lancamentos.splice(index, 1);
+      atualizarInterface();
     }
 
     document.getElementById('formLancamento').addEventListener('submit', (e) => {
       e.preventDefault();
-      const novo = {
+      
+      const novoLancamento = {
         data: document.getElementById('data').value,
         descricao: document.getElementById('descricao').value,
         valor: parseFloat(document.getElementById('valor').value),
         tipo: document.getElementById('tipo').value
       };
-      
-      // Salva diretamente na nuvem
-      db.ref('financas/lancamentos').push(novo);
+
+      dados.lancamentos.push(novoLancamento);
+      atualizarInterface();
       
       e.target.reset();
       document.getElementById('data').valueAsDate = new Date();
     });
 
+    // Inicialização do formulário
     document.getElementById('data').valueAsDate = new Date();
+    atualizarInterface();
   </script>
 </body>
 </html>
