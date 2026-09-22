@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestão Financeira & Reestruturação Real</title>
+  <title>Gestão Financeira Sincronizada - C6 Central</title>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
     :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --warning: #d97706; --bg: #f8f9fa; --card: #ffffff; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
@@ -15,6 +18,7 @@
     .metric.positive { color: var(--success); }
     .metric.negative { color: var(--danger); }
     .metric.warning { color: var(--warning); }
+    .status-cloud { font-size: 0.85rem; color: var(--success); font-weight: bold; display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
     .checklist { list-style: none; padding: 0; margin: 0; }
     .checklist li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     form { display: grid; gap: 10px; }
@@ -29,14 +33,15 @@
 </head>
 <body>
   <div class="container">
-    <h1>Controle Financeiro & Reestruturação Pessoal</h1>
+    <div class="status-cloud">☁️ Nuvem Sincronizada (Disponível no Celular & PC)</div>
+    <h1>Controle Financeiro Sincronizado</h1>
     
     <!-- SALDOS DISPONÍVEIS REAIS -->
     <div class="grid">
       <div class="card">
         <h3>Saldo Líquido C6 (Conta)</h3>
-        <div id="saldoC6" class="metric positive">R$ 71,59</div>
-        <small>Aguardando confirmação do PIX do Matheus</small>
+        <div id="saldoC6" class="metric warning">R$ 71,59</div>
+        <small>Disponível para uso imediato</small>
       </div>
       <div class="card">
         <h3>Investimentos Bloqueados</h3>
@@ -60,7 +65,7 @@
       <h3>Próximas Entradas — Ponte para Outubro</h3>
       <ul class="checklist">
         <li style="background: #e6f4ea; padding: 10px; border-radius: 6px; margin-bottom: 5px;">
-          <span><strong>Hoje/Amanhã (20-21/Set) — Matheus (Aluguel)</strong></span> 
+          <span><strong>Hoje/Amanhã — Matheus (Aluguel)</strong></span> 
           <strong>R$ 850,00</strong> 
           <span class="badge badge-success">Entrada Iminente</span>
         </li>
@@ -85,12 +90,12 @@
             <option value="gasto">Gasto Diário (-)</option>
             <option value="divida">Pagamento de Dívida (-)</option>
           </select>
-          <button type="submit">Registrar no Histórico</button>
+          <button type="submit">Registrar e Sincronizar</button>
         </form>
       </div>
 
       <div class="card">
-        <h3>Histórico de Lançamentos</h3>
+        <h3>Histórico de Lançamentos em Tempo Real</h3>
         <table>
           <thead>
             <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr>
@@ -102,17 +107,32 @@
   </div>
 
   <script>
-    let dados = JSON.parse(localStorage.getItem('financasDataLiquida')) || {
+    // Configuração do Firebase (Chave de Banco Gratuito de Teste)
+    const firebaseConfig = {
+      databaseURL: "https://financas-ronaldo-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Valores Iniciais Padrão
+    const baseData = {
       dividaTotal: 12515.00,
       saldoC6: 71.59,
       lancamentos: []
     };
 
-    function atualizarUI() {
-      let dividaAtual = dados.dividaTotal;
-      let c6 = dados.saldoC6;
+    // Escutar mudanças no Banco de Dados em Tempo Real (Sincroniza Celular e PC)
+    db.ref('financas').on('value', (snapshot) => {
+      const data = snapshot.val() || baseData;
+      render(data);
+    });
+
+    function render(dados) {
+      let dividaAtual = dados.dividaTotal || 12515.00;
+      let c6 = dados.saldoC6 || 71.59;
+      const lancamentos = dados.lancamentos ? Object.values(dados.lancamentos) : [];
       
-      dados.lancamentos.forEach(l => {
+      lancamentos.forEach(l => {
         if(l.tipo === 'divida') dividaAtual -= l.valor;
         if(l.tipo === 'gasto') c6 -= l.valor;
         if(l.tipo === 'entrada') c6 += l.valor;
@@ -130,11 +150,9 @@
 
       const tbody = document.getElementById('tabelaLancamentos');
       tbody.innerHTML = '';
-      dados.lancamentos.slice(-6).reverse().forEach(l => {
+      lancamentos.slice(-8).reverse().forEach(l => {
         tbody.innerHTML += `<tr><td>${l.data}</td><td>${l.descricao}</td><td>${l.tipo}</td><td>R$ ${l.valor.toFixed(2)}</td></tr>`;
       });
-
-      localStorage.setItem('financasDataLiquida', JSON.stringify(dados));
     }
 
     document.getElementById('formLancamento').addEventListener('submit', (e) => {
@@ -145,14 +163,15 @@
         valor: parseFloat(document.getElementById('valor').value),
         tipo: document.getElementById('tipo').value
       };
-      dados.lancamentos.push(novo);
-      atualizarUI();
+      
+      // Salva diretamente na nuvem
+      db.ref('financas/lancamentos').push(novo);
+      
       e.target.reset();
       document.getElementById('data').valueAsDate = new Date();
     });
 
     document.getElementById('data').valueAsDate = new Date();
-    atualizarUI();
   </script>
 </body>
 </html>
