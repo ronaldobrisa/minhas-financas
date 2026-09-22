@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestão Financeira Sincronizada - C6 Central</title>
+  <title>Gestão Financeira Sincronizada</title>
   <style>
     :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --warning: #d97706; --bg: #f8f9fa; --card: #ffffff; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
@@ -15,65 +15,38 @@
     .metric.positive { color: var(--success); }
     .metric.negative { color: var(--danger); }
     .metric.warning { color: var(--warning); }
-    .status-cloud { font-size: 0.85rem; color: var(--success); font-weight: bold; display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
-    .checklist { list-style: none; padding: 0; margin: 0; }
-    .checklist li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .status-cloud { font-size: 0.85rem; color: #1a73e8; font-weight: bold; margin-bottom: 10px; }
     form { display: grid; gap: 10px; }
     input, select, button { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
     button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
     button:hover { opacity: 0.9; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
-    .badge { background: #e8f0fe; color: #1a73e8; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; }
-    .badge-success { background: #e6f4ea; color: #137333; }
     .btn-danger { background: #dc3545; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: white; border: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div id="statusNuvem" class="status-cloud">🔄 Sincronizando com a Nuvem...</div>
+    <div id="statusNuvem" class="status-cloud">🔄 Inicializando sistema...</div>
     <h1>Controle Financeiro Sincronizado</h1>
     
-    <!-- SALDOS DISPONÍVEIS REAIS -->
     <div class="grid">
       <div class="card">
         <h3>Saldo Líquido C6 (Conta)</h3>
         <div id="saldoC6" class="metric warning">R$ 71,59</div>
-        <small>Disponível para uso imediato</small>
       </div>
       <div class="card">
         <h3>Investimentos Bloqueados</h3>
         <div class="metric">R$ 408,43</div>
-        <small>CDB C6 5 anos (Sem liquidez diária)</small>
       </div>
       <div class="card">
         <h3>Dívidas Mapeadas</h3>
         <div id="dividaTotal" class="metric negative">R$ 12.515,00</div>
-        <small>Meta 1: Quitação / Nome Limpo</small>
       </div>
       <div class="card">
         <h3>Meta Civic Gen10</h3>
         <div class="metric">R$ 120.000,00</div>
-        <small>Meta 3: Patrimônio Futuro</small>
       </div>
-    </div>
-
-    <!-- CALENDÁRIO DE RECTIFICAÇÃO DE FLUXO -->
-    <div class="card" style="margin-bottom: 20px;">
-      <h3>Próximas Entradas — Ponte para Outubro</h3>
-      <ul class="checklist">
-        <li style="background: #e6f4ea; padding: 10px; border-radius: 6px; margin-bottom: 5px;">
-          <span><strong>Hoje/Amanhã — Matheus (Aluguel)</strong></span> 
-          <strong>R$ 850,00</strong> 
-          <span class="badge badge-success">Entrada Iminente</span>
-        </li>
-        <li><span>Dia 01/Out — João (Aluguel)</span> <strong>R$ 500,00</strong> <span class="badge">A Receber</span></li>
-        <li><span>Dia 05 a 10/Out — Marcos (Aluguel)</span> <strong>R$ 930,00</strong> <span class="badge">A Receber</span></li>
-        <li><span>Dia 08 a 10/Out — Salário (Trabalho)</span> <strong>R$ 8.400,00 (+ R$ 1.000 VA)</strong> <span class="badge">A Receber</span></li>
-        <li style="background: #fff3cd; padding: 10px; border-radius: 6px; margin: 5px 0;">
-          <strong>DIA D 1 (11 de Outubro): Regularização Geral + Aluguel Quitinete (R$ 1.600)</strong>
-        </li>
-      </ul>
     </div>
 
     <div class="grid">
@@ -81,23 +54,20 @@
         <h3>Lançar Gastos / Entradas</h3>
         <form id="formLancamento">
           <input type="date" id="data" required>
-          <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel Matheus, Mercado)" required>
+          <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel Matheus)" required>
           <input type="number" step="0.01" id="valor" placeholder="Valor (R$)" required>
           <select id="tipo">
-            <option value="gasto">Gasto Diário (-)</option>
             <option value="entrada">Entrada de Dinheiro (+)</option>
+            <option value="gasto">Gasto Diário (-)</option>
             <option value="divida">Pagamento de Dívida (-)</option>
           </select>
-          <button type="submit" id="btnSubmit">Registrar e Sincronizar</button>
+          <button type="submit">Registrar</button>
         </form>
       </div>
-
       <div class="card">
         <h3>Histórico de Lançamentos</h3>
         <table>
-          <thead>
-            <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Ação</th></tr>
-          </thead>
+          <thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Ação</th></tr></thead>
           <tbody id="tabelaLancamentos"></tbody>
         </table>
       </div>
@@ -105,56 +75,20 @@
   </div>
 
   <script>
-    // Endpoint na nuvem exclusivo para o seu sistema
-    const API_URL = "https://api.jsonbin.io/v3/b/66ee2369ad19ca34f8aa47b5";
-    const MASTER_KEY = "$2a$10$UnLq.DptxbrM3B3p55eNduyE1B9qNfE4pUa8mE8fL9XqN3zKx3zK2";
+    // ==========================================
+    // COLE AS SUAS CREDENCIAIS REAIS AQUI ABAIXO
+    // ==========================================
+    const BIN_ID = "6ab1d19fac6210605ae7ad36"; 
+    const MASTER_KEY = "$2a$10$I3LFh/GVHV2qLDcDbi5CV.frNBeyAszAomJinXBVkp4.nGdcYc7T.";
+    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-    let dados = {
+    let dados = JSON.parse(localStorage.getItem('financasSystemData')) || {
       dividaTotal: 12515.00,
       saldoC6: 71.59,
       lancamentos: []
     };
 
-    // Carregar dados da Nuvem
-    async function carregarDaNuvem() {
-      try {
-        const res = await fetch(API_URL, {
-          headers: { "X-Master-Key": MASTER_KEY }
-        });
-        if(res.ok) {
-          const json = await res.json();
-          if(json.record && json.record.lancamentos) {
-            dados = json.record;
-            document.getElementById('statusNuvem').innerText = "☁️ Nuvem Sincronizada (PC & Celular conectados)";
-          }
-        }
-      } catch(e) {
-        document.getElementById('statusNuvem').innerText = "⚠️ Modo Offline / Usando dados locais";
-        const local = localStorage.getItem('financasSystemData');
-        if(local) dados = JSON.parse(local);
-      }
-      atualizarInterface();
-    }
-
-    // Salvar dados na Nuvem
-    async function salvarNaNuvem() {
-      document.getElementById('statusNuvem').innerText = "⏳ Salvando na Nuvem...";
-      localStorage.setItem('financasSystemData', JSON.stringify(dados));
-      try {
-        await fetch(API_URL, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Master-Key": MASTER_KEY
-          },
-          body: JSON.stringify(dados)
-        });
-        document.getElementById('statusNuvem').innerText = "☁️ Nuvem Sincronizada (PC & Celular conectados)";
-      } catch(e) {
-        document.getElementById('statusNuvem').innerText = "⚠️ Erro ao sincronizar com a Nuvem";
-      }
-    }
-
+    // 1. Atualiza a UI imediatamente (Offline-First)
     function atualizarInterface() {
       let dividaAtual = 12515.00;
       let c6 = 71.59;
@@ -166,41 +100,63 @@
       });
 
       document.getElementById('dividaTotal').innerText = `R$ ${Math.max(0, dividaAtual).toFixed(2)}`;
-      
       const elSaldo = document.getElementById('saldoC6');
       elSaldo.innerText = `R$ ${Math.max(0, c6).toFixed(2)}`;
-      if(c6 >= 500) {
-        elSaldo.className = "metric positive";
-      } else {
-        elSaldo.className = "metric warning";
-      }
+      elSaldo.className = c6 >= 500 ? "metric positive" : "metric warning";
 
       const tbody = document.getElementById('tabelaLancamentos');
       tbody.innerHTML = '';
-      
       dados.lancamentos.slice().reverse().forEach((l, index) => {
         const realIndex = dados.lancamentos.length - 1 - index;
-        const tipoFormatado = l.tipo === 'entrada' ? 'Entrada (+)' : (l.tipo === 'gasto' ? 'Gasto (-)' : 'Dívida (-)');
-        
-        tbody.innerHTML += `
-          <tr>
-            <td>${l.data}</td>
-            <td>${l.descricao}</td>
-            <td>${tipoFormatado}</td>
-            <td>R$ ${l.valor.toFixed(2)}</td>
-            <td><button class="btn-danger" onclick="removerLancamento(${realIndex})">X</button></td>
-          </tr>
-        `;
+        const tipoFmt = l.tipo === 'entrada' ? 'Entrada (+)' : (l.tipo === 'gasto' ? 'Gasto (-)' : 'Dívida (-)');
+        tbody.innerHTML += `<tr><td>${l.data}</td><td>${l.descricao}</td><td>${tipoFmt}</td><td>R$ ${l.valor.toFixed(2)}</td><td><button class="btn-danger" onclick="removerLancamento(${realIndex})">X</button></td></tr>`;
       });
+
+      localStorage.setItem('financasSystemData', JSON.stringify(dados));
     }
 
-    async function removerLancamento(index) {
-      dados.lancamentos.splice(index, 1);
+    // 2. Sincroniza em background sem travar a tela
+    async function salvarNaNuvem() {
+      if (BIN_ID === "SEU_BIN_ID") {
+        document.getElementById('statusNuvem').innerText = "⚠️ Dados salvos apenas localmente. Insira a chave do JSONBin no código.";
+        return;
+      }
+      document.getElementById('statusNuvem').innerText = "⏳ Sincronizando...";
+      try {
+        await fetch(API_URL, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "X-Master-Key": MASTER_KEY },
+          body: JSON.stringify(dados)
+        });
+        document.getElementById('statusNuvem').innerText = "☁️ Nuvem Sincronizada";
+      } catch(e) {
+        document.getElementById('statusNuvem').innerText = "⚠️ Erro de rede. Salvo localmente.";
+      }
+    }
+
+    async function carregarDaNuvem() {
+      if (BIN_ID === "SEU_BIN_ID") {
+        document.getElementById('statusNuvem').innerText = "⚠️ Rodando Local (Sem Nuvem). Insira suas chaves.";
+        atualizarInterface();
+        return;
+      }
+      try {
+        const res = await fetch(API_URL, { headers: { "X-Master-Key": MASTER_KEY } });
+        if(res.ok) {
+          const json = await res.json();
+          if(json.record && json.record.lancamentos !== undefined) {
+            dados = json.record;
+            document.getElementById('statusNuvem').innerText = "☁️ Nuvem Sincronizada";
+          }
+        }
+      } catch(e) {
+        document.getElementById('statusNuvem').innerText = "⚠️ Usando dados offline.";
+      }
       atualizarInterface();
-      await salvarNaNuvem();
     }
 
-    document.getElementById('formLancamento').addEventListener('submit', async (e) => {
+    // 3. Captura do Formulário à prova de quebra
+    document.getElementById('formLancamento').addEventListener('submit', (e) => {
       e.preventDefault();
       
       const novoLancamento = {
@@ -211,15 +167,22 @@
       };
 
       dados.lancamentos.push(novoLancamento);
-      atualizarInterface();
       
+      // Atualiza a tela primeiro, garantindo a UX
+      atualizarInterface();
       e.target.reset();
       document.getElementById('data').valueAsDate = new Date();
       
-      await salvarNaNuvem();
+      // Sincroniza em background depois
+      salvarNaNuvem();
     });
 
-    // Inicialização
+    window.removerLancamento = function(index) {
+      dados.lancamentos.splice(index, 1);
+      atualizarInterface();
+      salvarNaNuvem();
+    };
+
     document.getElementById('data').valueAsDate = new Date();
     carregarDaNuvem();
   </script>
