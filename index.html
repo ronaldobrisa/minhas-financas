@@ -31,7 +31,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="status-cloud">✅ Sistema Ativo e Operacional</div>
+    <div id="statusNuvem" class="status-cloud">🔄 Sincronizando com a Nuvem...</div>
     <h1>Controle Financeiro Sincronizado</h1>
     
     <!-- SALDOS DISPONÍVEIS REAIS -->
@@ -84,11 +84,11 @@
           <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel Matheus, Mercado)" required>
           <input type="number" step="0.01" id="valor" placeholder="Valor (R$)" required>
           <select id="tipo">
-            <option value="entrada">Entrada de Dinheiro (+)</option>
             <option value="gasto">Gasto Diário (-)</option>
+            <option value="entrada">Entrada de Dinheiro (+)</option>
             <option value="divida">Pagamento de Dívida (-)</option>
           </select>
-          <button type="submit">Registrar e Sincronizar</button>
+          <button type="submit" id="btnSubmit">Registrar e Sincronizar</button>
         </form>
       </div>
 
@@ -105,12 +105,55 @@
   </div>
 
   <script>
-    // Gerenciamento com armazenamento confiável e recuperação automática
-    let dados = JSON.parse(localStorage.getItem('financasSystemData')) || {
+    // Endpoint na nuvem exclusivo para o seu sistema
+    const API_URL = "https://api.jsonbin.io/v3/b/66ee2369ad19ca34f8aa47b5";
+    const MASTER_KEY = "$2a$10$UnLq.DptxbrM3B3p55eNduyE1B9qNfE4pUa8mE8fL9XqN3zKx3zK2";
+
+    let dados = {
       dividaTotal: 12515.00,
       saldoC6: 71.59,
       lancamentos: []
     };
+
+    // Carregar dados da Nuvem
+    async function carregarDaNuvem() {
+      try {
+        const res = await fetch(API_URL, {
+          headers: { "X-Master-Key": MASTER_KEY }
+        });
+        if(res.ok) {
+          const json = await res.json();
+          if(json.record && json.record.lancamentos) {
+            dados = json.record;
+            document.getElementById('statusNuvem').innerText = "☁️ Nuvem Sincronizada (PC & Celular conectados)";
+          }
+        }
+      } catch(e) {
+        document.getElementById('statusNuvem').innerText = "⚠️ Modo Offline / Usando dados locais";
+        const local = localStorage.getItem('financasSystemData');
+        if(local) dados = JSON.parse(local);
+      }
+      atualizarInterface();
+    }
+
+    // Salvar dados na Nuvem
+    async function salvarNaNuvem() {
+      document.getElementById('statusNuvem').innerText = "⏳ Salvando na Nuvem...";
+      localStorage.setItem('financasSystemData', JSON.stringify(dados));
+      try {
+        await fetch(API_URL, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": MASTER_KEY
+          },
+          body: JSON.stringify(dados)
+        });
+        document.getElementById('statusNuvem').innerText = "☁️ Nuvem Sincronizada (PC & Celular conectados)";
+      } catch(e) {
+        document.getElementById('statusNuvem').innerText = "⚠️ Erro ao sincronizar com a Nuvem";
+      }
+    }
 
     function atualizarInterface() {
       let dividaAtual = 12515.00;
@@ -149,16 +192,15 @@
           </tr>
         `;
       });
-
-      localStorage.setItem('financasSystemData', JSON.stringify(dados));
     }
 
-    function removerLancamento(index) {
+    async function removerLancamento(index) {
       dados.lancamentos.splice(index, 1);
       atualizarInterface();
+      await salvarNaNuvem();
     }
 
-    document.getElementById('formLancamento').addEventListener('submit', (e) => {
+    document.getElementById('formLancamento').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const novoLancamento = {
@@ -173,11 +215,13 @@
       
       e.target.reset();
       document.getElementById('data').valueAsDate = new Date();
+      
+      await salvarNaNuvem();
     });
 
-    // Inicialização do formulário
+    // Inicialização
     document.getElementById('data').valueAsDate = new Date();
-    atualizarInterface();
+    carregarDaNuvem();
   </script>
 </body>
 </html>
